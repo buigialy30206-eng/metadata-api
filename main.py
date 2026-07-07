@@ -69,9 +69,10 @@ async def extract(url: str = Query(..., description="URL to extract metadata fro
             from urllib.parse import urljoin
             favicon = urljoin(url, favicon)
 
+    title_match = re.search(r"<title>([^<]+)</title>", html, re.I)
     return Metadata(
         url=url,
-        title=extract_meta(html, "title") or re.search(r"<title>([^<]+)</title>", html, re.I),
+        title=extract_meta(html, "title") or (title_match.group(1) if title_match else None),
         description=extract_meta(html, "description"),
         image=extract_meta(html, "image"),
         favicon=favicon,

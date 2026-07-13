@@ -8,32 +8,13 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import time as _t, threading as _th
-_rl_win, _rl_max, _rl_hits, _rl_lk = 60, 60, {}, _th.Lock()
-
-async def _rate_limit(request):
-    from fastapi import Request, HTTPException
-    ip = (request.headers.get('X-Forwarded-For','') or request.headers.get('X-Real-IP','') or (request.client.host if request.client else '127.0.0.1')).split(',')[0].strip()
-    now = _t.time()
-    with _rl_lk:
-        e = _rl_hits.get(ip)
-        if e:
-            if now - e['s'] > _rl_win: e['s'], e['c'] = now, 1
-            else:
-                e['c'] += 1
-                if e['c'] > _rl_max: raise HTTPException(429, 'Too many requests')
-        else: _rl_hits[ip] = {'s': now, 'c': 1}
-    return True
-
 app = FastAPI(title="URL Metadata Extractor API", version="1.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-
 
 # Cache
 _cache = {}
 _cache_lock = threading.Lock()
 CACHE_TTL = 600  # 10 min
-
 
 class Metadata(BaseModel):
     url: str
@@ -48,7 +29,6 @@ class Metadata(BaseModel):
     twitter_card: Optional[str] = None
     error: Optional[str] = None
 
-
 def fetch_html(url: str) -> str:
     cmd = ["curl", "-sL", "--connect-timeout", "6", "--max-time", "10",
            "-H", "User-Agent: Mozilla/5.0", url]
@@ -57,7 +37,6 @@ def fetch_html(url: str) -> str:
         return result.stdout if result.returncode == 0 else ""
     except (subprocess.TimeoutExpired, Exception):
         return ""
-
 
 def extract_meta(html: str, name: str) -> Optional[str]:
     try:
@@ -78,16 +57,13 @@ def extract_meta(html: str, name: str) -> Optional[str]:
         pass
     return None
 
-
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok", "cache_size": len(_cache)}
 
-
 @app.get("/")
 async def root():
     return {"service": "URL Metadata Extractor API", "version": "1.1.0"}
-
 
 @app.get("/extract", response_model=Metadata)
 async def extract(url: str = Query(..., description="URL to extract metadata from")):

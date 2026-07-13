@@ -4,7 +4,7 @@ Extracts Open Graph / Twitter Card / meta tags from any URL.
 """
 import re, subprocess, time, threading
 from typing import Optional
-from fastapi import FastAPI, Depends, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 

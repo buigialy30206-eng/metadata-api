@@ -63,7 +63,7 @@ async def health():
 
 @app.get("/")
 async def root():
-    return {"service": "URL Metadata Extractor API", "version": "1.1.0"}
+    return {"service": "URL Metadata Extractor API", "version": "1.1.0", "related": ["Text to Slug API", "Markdown to HTML API"]}
 
 @app.get("/extract", response_model=Metadata)
 async def extract(url: str = Query(..., description="URL to extract metadata from")):

@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 app = FastAPI(title="URL Metadata Extractor API", version="1.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok"}
 
@@ -48,7 +48,7 @@ def extract_meta(html: str, name: str) -> Optional[str]:
     return None
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     return {"status": "ok"}
 
